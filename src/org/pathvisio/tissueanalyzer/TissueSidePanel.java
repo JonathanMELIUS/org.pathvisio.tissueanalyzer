@@ -26,6 +26,7 @@ import org.pathvisio.desktop.visualization.VisualizationManager;
 import org.pathvisio.desktop.visualization.ColorGradient.ColorValuePair;
 import org.pathvisio.visualization.plugins.ColorByExpression;
 import org.pathvisio.visualization.plugins.DataNodeLabel;
+import org.pathvisio.visualization.plugins.LegendPanel;
 
 public class TissueSidePanel extends JPanel implements ObserverSidePanel{
 	//private JComboBox<String> tissueCB;
@@ -33,10 +34,12 @@ public class TissueSidePanel extends JPanel implements ObserverSidePanel{
 	//private JScrollPane scroll;
 	private PvDesktop standaloneEngine;
 	private ArrayList<JCheckBox> cbList;
+	private LegendPanel legendPane;
 
 	public TissueSidePanel(PvDesktop standaloneEngine){
 
 		this.standaloneEngine = standaloneEngine;
+		legendPane = new LegendPanel(standaloneEngine.getVisualizationManager());
 		panel = new JPanel();
 		//tissueCB = new JComboBox<String>();
 		//tissueCB.setSize(400, 50);
@@ -49,6 +52,7 @@ public class TissueSidePanel extends JPanel implements ObserverSidePanel{
 		//scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		//scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		//add(scroll);
+		add(legendPane);
 		add(panel);
 	}
 
