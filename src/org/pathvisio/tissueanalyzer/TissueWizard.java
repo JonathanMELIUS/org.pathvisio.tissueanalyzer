@@ -290,7 +290,7 @@ public class TissueWizard extends Wizard implements OberservableExperiment
 	{
 		public static final String IDENTIFIER = "TISSUES_PAGE";
 		private static final String gene_ID = "Gene ID";
-		JTextField cutoff;
+		private JTextField cutoff;
 
 		private JList choice_list;
 		private JList selected_list;
@@ -320,6 +320,7 @@ public class TissueWizard extends Wizard implements OberservableExperiment
 
 		protected Component createContents() {			
 			cutoff = new JTextField();
+			cutoff.setText("0.5");
 
 
 			/*FormLayout layout = new FormLayout (
@@ -583,8 +584,8 @@ public class TissueWizard extends Wizard implements OberservableExperiment
 		double lowerbound = makeRoundNumber (0); 
 		double upperbound = makeRoundNumber (250);
 		
-		gradient.addColorValuePair(new ColorValuePair(Color.YELLOW, lowerbound));
-		gradient.addColorValuePair(new ColorValuePair(Color.BLUE, upperbound));
+		gradient.addColorValuePair(new ColorValuePair(Color.BLUE, lowerbound));
+		gradient.addColorValuePair(new ColorValuePair(Color.RED, upperbound));
 		
 		//System.out.println(info.getMinimum()+"  "+info.getMaximum());
 		//System.out.println(lowerbound+"  "+upperbound);

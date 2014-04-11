@@ -78,8 +78,8 @@ public class TissueSidePanel extends JPanel implements ObserverSidePanel{
 				double lowerbound = 0; 
 				double upperbound = 250;
 
-				gradient.addColorValuePair(new ColorValuePair(Color.YELLOW, lowerbound));
-				gradient.addColorValuePair(new ColorValuePair(Color.BLUE, upperbound));
+				gradient.addColorValuePair(new ColorValuePair(Color.BLUE, lowerbound));
+				gradient.addColorValuePair(new ColorValuePair(Color.RED, upperbound));
 
 				Visualization v = new Visualization("auto-generated");
 
