@@ -20,7 +20,7 @@ package org.pathvisio.tissueanalyzer;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.pathvisio.desktop.plugin.Plugin;
-import org.pathvisio.tissueanalyzer.TissuePlugin;
+import org.pathvisio.tissueanalyzer.plugin.TissuePlugin;
 
 public class Activator implements BundleActivator {
 
