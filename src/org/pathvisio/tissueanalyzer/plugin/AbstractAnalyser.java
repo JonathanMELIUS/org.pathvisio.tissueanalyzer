@@ -1,22 +1,17 @@
 package org.pathvisio.tissueanalyzer.plugin;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
-import java.util.Arrays;
 
-import org.bridgedb.DataSource;
 import org.pathvisio.gexplugin.ImportInformation;
 import org.pathvisio.tissueanalyzer.utils.ObservableTissue;
 import org.pathvisio.tissueanalyzer.utils.ObserverTissue;
 
+/**
+* Abstract class to query Expression Atlas human tissues dataset.
+* Retrieve the list of tissues and the dataset.
+* @author Jonathan Melius
+* @see ObservableTissue
+*/
 public abstract class AbstractAnalyser implements ObservableTissue {
 
 	protected ImportInformation importInformation;

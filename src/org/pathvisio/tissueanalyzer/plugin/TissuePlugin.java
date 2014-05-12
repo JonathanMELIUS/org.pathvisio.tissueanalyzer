@@ -30,8 +30,8 @@ import org.pathvisio.tissueanalyzer.gui.TissueSidePanel;
 import org.pathvisio.tissueanalyzer.gui.TissueWizard;
 
 /**
-* This plugin import data from expression Atlas. Currently only adds menu items
-* to import and load the data expression 
+* This plugin import human tissues datasets from expression Atlas.
+* Currently only adds menu items to import and visualize the data expression.
 * @author Jonathan Melius
 */
 public class TissuePlugin implements Plugin

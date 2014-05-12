@@ -1,7 +1,5 @@
 package org.pathvisio.tissueanalyzer.gui;
 
-
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -11,7 +9,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.swing.JCheckBox;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
@@ -29,6 +26,12 @@ import org.pathvisio.tissueanalyzer.utils.ObserverSidePanel;
 import org.pathvisio.visualization.plugins.ColorByExpression;
 import org.pathvisio.visualization.plugins.DataNodeLabel;
 import org.pathvisio.visualization.plugins.LegendPanel;
+
+/**
+* Create a side panel to change dynamically the list of visualized tissues.
+* @author Jonathan Melius
+* @see ObserverSidePanel
+*/
 
 public class TissueSidePanel extends JPanel implements ObserverSidePanel{
 	//private JComboBox<String> tissueCB;

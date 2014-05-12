@@ -9,6 +9,11 @@ import javax.swing.JTextField;
 
 import org.pathvisio.core.util.FileUtils;
 
+/**
+* Choose the way to query the Expression Atlas human tissues datasets.
+* @author Jonathan Melius
+*/
+
 public class TissueControler {
 	private AbstractAnalyser analyser;
 

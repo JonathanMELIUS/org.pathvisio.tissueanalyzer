@@ -80,8 +80,8 @@ import com.nexes.wizard.Wizard;
 import com.nexes.wizard.WizardPanelDescriptor;
 
 /**
-* Wizard to guide the user through importing data set from Expression Atlas
-* in PathVisio.
+* Wizard to guide the user through importing baseline human tissues dataset 
+* from Expression Atlas in PathVisio.
 * @author Jonathan Melius
 */
 public class TissueWizard extends Wizard implements ObserverTissue, ObservableSidePanel

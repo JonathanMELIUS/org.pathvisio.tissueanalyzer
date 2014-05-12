@@ -17,6 +17,12 @@ import org.pathvisio.gexplugin.ImportInformation;
 import org.pathvisio.tissueanalyzer.utils.ObservableTissue;
 import org.pathvisio.tissueanalyzer.utils.ObserverTissue;
 
+/**
+* Query Expression Atlas database by the web service.
+* Retrieve the list of tissues and the dataset.
+* @see AbstractAnalyser
+* @author Jonathan Melius
+*/
 public class TissueAnalyser extends AbstractAnalyser {
 
 	public TissueAnalyser () {
