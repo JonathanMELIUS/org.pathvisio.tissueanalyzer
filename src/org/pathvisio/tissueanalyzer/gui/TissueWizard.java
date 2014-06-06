@@ -21,14 +21,17 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -36,6 +39,7 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
@@ -44,6 +48,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.bridgedb.IDMapperException;
+import org.bridgedb.IDMapperStack;
 import org.bridgedb.rdb.construct.DBConnector;
 import org.pathvisio.core.debug.Logger;
 import org.pathvisio.core.preferences.GlobalPreference;
@@ -57,14 +62,18 @@ import org.pathvisio.data.DataInterface;
 import org.pathvisio.data.ISample;
 import org.pathvisio.desktop.PvDesktop;
 import org.pathvisio.desktop.data.DBConnectorSwing;
+import org.pathvisio.desktop.gex.CachedData;
 import org.pathvisio.desktop.visualization.ColorGradient;
 import org.pathvisio.desktop.visualization.ColorGradient.ColorValuePair;
 import org.pathvisio.desktop.visualization.ColorSet;
 import org.pathvisio.desktop.visualization.ColorSetManager;
+import org.pathvisio.desktop.visualization.Criterion;
 import org.pathvisio.desktop.visualization.Visualization;
 import org.pathvisio.desktop.visualization.VisualizationManager;
 import org.pathvisio.gexplugin.GexTxtImporter;
 import org.pathvisio.gexplugin.ImportInformation;
+import org.pathvisio.statistics.StatisticsResult;
+import org.pathvisio.statistics.ZScoreCalculator;
 import org.pathvisio.tissueanalyzer.plugin.TissueControler;
 import org.pathvisio.tissueanalyzer.utils.ObservableSidePanel;
 import org.pathvisio.tissueanalyzer.utils.ObserverSidePanel;
@@ -80,10 +89,10 @@ import com.nexes.wizard.Wizard;
 import com.nexes.wizard.WizardPanelDescriptor;
 
 /**
-* Wizard to guide the user through importing baseline human tissues dataset 
-* from Expression Atlas in PathVisio.
-* @author Jonathan Melius
-*/
+ * Wizard to guide the user through importing baseline human tissues dataset 
+ * from Expression Atlas in PathVisio.
+ * @author Jonathan Melius
+ */
 public class TissueWizard extends Wizard implements ObserverTissue, ObservableSidePanel
 {
 	private ImportInformation importInformation;	
@@ -96,26 +105,25 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 	private String experiment;
 	private ArrayList<String> selectedTissues;
 	private ArrayList<String> listOfTissues;
-	
+
 	private TissueControler tissueControler;
 
 	private final PvDesktop standaloneEngine;
 
 	public final String first_experiment="E-MTAB-513";
 	public final String second_experiment="E-MTAB-1733";
-	
+
 	public static Map<String,ArrayList<String>> tissuemap = new HashMap<String,ArrayList<String>>();
 
 	public TissueWizard (PvDesktop standaloneEngine, TissueControler tc)
 	{
 		this.standaloneEngine = standaloneEngine;
 		this.tissueControler = tc;
-		//importInformation = new ImportInformation();
 		experiment="";
 		fpd = new FilePage();
 		tpd = new TissuesPage();
 		ipd = new ImportPage();
-		
+
 		observers = new ArrayList<ObserverSidePanel>();
 
 		getDialog().setTitle ("Atlas Expression data import wizard");
@@ -247,20 +255,8 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 		{
 			experiment = group.getSelection().getActionCommand();
 			tissueControler.control(experiment, txtOutput.getText());
-			/*
-			String outFile = null;
-			File f = new File(txtOutput.getText());
-			try {
-				f.getCanonicalPath();
-				f=FileUtils.replaceExtension(f, "pgex");
-				outFile = f.getCanonicalPath();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}	
-			importInformation.setGexName(outFile);
-			experiment = group.getSelection().getActionCommand();
-			tissueanalyser = new TissueAnalyser(importInformation,experiment);
-			*/
+
+
 		}
 
 		public void actionPerformed(ActionEvent e) {
@@ -301,8 +297,15 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 
 		private JList choice_list;
 		private JList selected_list;
-
+		private JScrollPane choiceScrollPane;
+		private JScrollPane selectedScrollPane;
+		private JButton add;
+		private JButton remove;
+		private JRadioButton complete;
+		private JRadioButton filtered;
 		
+
+
 
 		public TissuesPage()
 		{	
@@ -313,11 +316,9 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 			getWizard().setPageTitle ("Choose the tissues");
 			//listOfTissues = tissueanalyser.queryTissuesList(experiment);
 			if (!tissuemap.containsKey(experiment)){
-				System.out.println("1");
 				tissueControler.queryTissuesList(experiment);
 			}
 			else{
-				System.out.println("2");
 				listOfTissues = tissuemap.get(experiment);
 			}
 			choice_list.setListData(listOfTissues.toArray());
@@ -336,20 +337,24 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 			cutoff = new JTextField();
 			cutoff.setText("0.5");
 
-
+			complete = new JRadioButton("Download the complete dataset");
+			filtered = new JRadioButton("Filtred by tissue(s)");
+			ButtonGroup groupe = new ButtonGroup ();
+			groupe.add (complete);
+			groupe.add (filtered);
+			
 			/*FormLayout layout = new FormLayout (
 					"pref:grow",
 					"fill:[100dlu,min]:grow");*/
 			FormLayout layout = new FormLayout (
 					"pref, 25dlu, pref, 25dlu, pref, 25dlu, pref, 75dlu, pref",
-					"p, 3dlu, p, 3dlu, p");
+					"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p");
 			PanelBuilder builder = new PanelBuilder(layout);
 			builder.setDefaultDialogBorder();
 			CellConstraints cc = new CellConstraints();	
 
 			selectedTissues = new ArrayList<String>();
-			listOfTissues = new ArrayList<String>(
-					Arrays.asList(" "));
+			listOfTissues = new ArrayList<String>(Arrays.asList(" "));
 
 			//Create the list and put it in a scroll pane.
 			choice_list = new JList(listOfTissues.toArray());
@@ -361,10 +366,11 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 			selected_list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
 			selected_list.setSelectedIndex(0);
 
-			JScrollPane choiceScrollPane = new JScrollPane(choice_list);
-			JScrollPane selectedScrollPane = new JScrollPane(selected_list);
-
-			JButton add = new JButton(">>");
+			choiceScrollPane = new JScrollPane(choice_list);
+			selectedScrollPane = new JScrollPane(selected_list);
+			
+			
+			add = new JButton(">>");
 			add.addActionListener(new ActionListener(){
 				public void actionPerformed(ActionEvent e) {
 					for (  Object tissue : choice_list.getSelectedValues() ){
@@ -375,7 +381,7 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 					}					
 				}
 			});
-			JButton remove = new JButton("<<");
+			remove = new JButton("<<");
 			remove.addActionListener(new ActionListener(){
 				public void actionPerformed(ActionEvent e) {
 					for(Object str : selected_list.getSelectedValues()) {
@@ -384,18 +390,54 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 					selected_list.setListData(selectedTissues.toArray());
 				}
 			});
-			builder.add (choiceScrollPane, cc.xy(5,1));
-			builder.add (add, cc.xy (7,1));
-			builder.add (remove, cc.xy (6,1));
-			builder.add (selectedScrollPane, cc.xy(8,1));
-			builder.addLabel("cutoff", cc.xy (5,3));
-			builder.add(cutoff, cc.xy (6,3));
+			complete.setSelected(true);
+			selected_list.setEnabled(false);
+			choice_list.setEnabled(false);
+			add.setEnabled(false);
+			remove.setEnabled(false);
+			cutoff.setEnabled(false);
+			ActionListener rbAction = new ActionListener() {
+				public void actionPerformed (ActionEvent ae)
+				{
+					if (filtered.isSelected()){
+						selected_list.setEnabled(true);
+						choice_list.setEnabled(true);
+						add.setEnabled(true);
+						remove.setEnabled(true);
+						cutoff.setEnabled(true);
+					}
+					else{
+						selected_list.setEnabled(false);
+						choice_list.setEnabled(false);
+						add.setEnabled(false);
+						remove.setEnabled(false);
+						cutoff.setEnabled(false);
+					}
+				}
+			};
+			filtered.addActionListener(rbAction);
+			complete.addActionListener(rbAction);
+			builder.add (complete, cc.xy(5, 1));
+			builder.add (filtered, cc.xy(5, 3));
+			builder.add (choiceScrollPane, cc.xy(5,5));
+			builder.add (add, cc.xy (7,5));
+			builder.add (remove, cc.xy (6,5));
+			builder.add (selectedScrollPane, cc.xy(8,5));
+			builder.addLabel("cutoff", cc.xy (7,3));
+			builder.add(cutoff, cc.xy (8,3));
 
 			return builder.getPanel();
 		}
 		public void aboutToHidePanel(){
-			notifyObservers(listOfTissues,selectedTissues);
-			tissueControler.query(selectedTissues, cutoff.getText());			
+			//notifyObservers(listOfTissues,selectedTissues);
+			if (filtered.isSelected()){
+				tissueControler.query(selectedTissues, cutoff.getText());
+			}
+			else{
+				tissueControler.query(new ArrayList<String>(), "0");
+			}
+
+
 		}
 	}
 
@@ -463,7 +505,9 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 		{
 			progressText.setText(msg);
 		}
+		public void aboutToHidePanel(){
 
+		}
 		public void aboutToDisplayPanel()
 		{
 			getWizard().setPageTitle ("Perform import");
@@ -476,6 +520,7 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 
 		public void displayingPanel()
 		{
+
 			SwingWorker<Void, Void> sw = new SwingWorker<Void, Void>() {
 				@Override protected Void doInBackground() throws Exception {
 					pk.setTaskName("Importing pathway");
@@ -488,10 +533,11 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 								standaloneEngine.getGexManager()
 								);
 						createDefaultVisualization(importInformation);
-						/*
+						
 						if (standaloneEngine.getVisualizationManager().getActiveVisualization() == null)
 							System.out.println("titi");
-							createDefaultVisualization(importInformation);*/
+							createDefaultVisualization(importInformation);
+						
 					} 
 					catch (Exception e) 
 					{
@@ -510,9 +556,10 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 				{
 					getWizard().setNextFinishButtonEnabled(true);
 					getWizard().setBackButtonEnabled(true);
+
 				}
 			};
-			sw.execute();
+			sw.execute();			
 		}
 
 		public void progressEvent(ProgressEvent e)
@@ -548,29 +595,26 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 
 		ColorGradient gradient = new ColorGradient();
 		cs.setGradient(gradient);
-		
-		
+
+
 		//double lowerbound = makeRoundNumber (info.getMinimum() - info.getMinimum() / 10); 
 		//double upperbound = makeRoundNumber (info.getMaximum() + info.getMaximum() / 10);
 		double lowerbound = makeRoundNumber (0); 
-		double upperbound = makeRoundNumber (250);
-		
-		gradient.addColorValuePair(new ColorValuePair(Color.BLUE, lowerbound));
-		gradient.addColorValuePair(new ColorValuePair(Color.RED, upperbound));
-		
-		//System.out.println(info.getMinimum()+"  "+info.getMaximum());
-		//System.out.println(lowerbound+"  "+upperbound);
-		
-		String visuName = "auto-generated";
-		Visualization v = new Visualization(visuName);
+		double upperbound = makeRoundNumber (14);
+
+		gradient.addColorValuePair(new ColorValuePair(Color.RED, lowerbound));
+		gradient.addColorValuePair(new ColorValuePair(Color.YELLOW, upperbound));
+
+//		String visuName = "toto";
+//		Visualization v = new Visualization(visuName);
+		Visualization v = new Visualization("auto-generated");
 
 		ColorByExpression cby = new ColorByExpression(standaloneEngine.getGexManager(), 
 				standaloneEngine.getVisualizationManager().getColorSetManager());
 		DataInterface gex = standaloneEngine.getGexManager().getCurrentGex();
-		
+
 		Map<Integer, ? extends ISample> samplesMap = gex.getSamples();
 		for(Entry<Integer, ? extends ISample> entry : samplesMap.entrySet()) {
-			//Integer cle = entry.getKey();
 			ISample value = entry.getValue();
 			String tissues = value.getName().trim();			
 			if ( selectedTissues.contains(tissues)){
@@ -582,55 +626,44 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 
 		DataNodeLabel dnl = new DataNodeLabel();
 		v.addMethod(dnl);
-		//System.out.println("1"+v.getName());
-		Visualization active = standaloneEngine.getVisualizationManager().getActiveVisualization();
-		if (active!= null ){
-			//System.out.println("2"+active.getName());
-			if (active.getName()==visuName){
-				//System.out.println("toto");			
-				visMgr.removeVisualization(v);
-			}		
-		}
+		//Visualization active = standaloneEngine.getVisualizationManager().getActiveVisualization();
+		//		if (active!= null ){
+		//			if (active.getName()==visuName){		
+		//visMgr.removeVisualization(v);
+		//			}		
+		//		}
 		visMgr.addVisualization(v);
 		visMgr.setActiveVisualization(v);
 	}
 
 	@Override
 	public void addObserver(ObserverSidePanel obs) {
-		// TODO Auto-generated method stub
 		observers.add(obs);
 	}
 
 	@Override
-	public void notifyObservers(ArrayList<String> progress,ArrayList<String> selected) {
-		// TODO Auto-generated method stub
+	public void notifyObservers(ArrayList<String> listOfTissues,ArrayList<String> selected) {
 		for (ObserverSidePanel obs : observers){
-			obs.update(progress,selected);
+			obs.update(listOfTissues,selected);
 		}
 	}
 
 	@Override
 	public void delOneObserver(ObserverSidePanel obs) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
-	public void delAllObservers() {
-		// TODO Auto-generated method stub
-		
+	public void delAllObservers() {		
 	}
 
 	@Override
-	public void update(ArrayList<String> listOfTissues, String exp) {		
-		// TODO Auto-generated method stub
+	public void update(ArrayList<String> listOfTissues, String exp) {
 		tissuemap.put(exp, listOfTissues);
 		this.listOfTissues=listOfTissues;		
 	}
 
 	@Override
 	public void update(ImportInformation importInformation) {
-		// TODO Auto-generated method stub
 		this.importInformation=importInformation;		
 	}	
 }
