@@ -86,4 +86,9 @@ public abstract class AbstractAnalyser implements ObservableTissue {
 		
 	}
 
+	public void querySelect() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

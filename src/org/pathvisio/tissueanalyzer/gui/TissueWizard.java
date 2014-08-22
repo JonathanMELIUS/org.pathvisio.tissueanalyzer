@@ -303,10 +303,7 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 		private JButton remove;
 		private JRadioButton complete;
 		private JRadioButton filtered;
-		
-
-
-
+	
 		public TissuesPage()
 		{	
 			super(IDENTIFIER);
@@ -314,7 +311,6 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 		public void aboutToDisplayPanel()
 		{
 			getWizard().setPageTitle ("Choose the tissues");
-			//listOfTissues = tissueanalyser.queryTissuesList(experiment);
 			if (!tissuemap.containsKey(experiment)){
 				tissueControler.queryTissuesList(experiment);
 			}
@@ -343,9 +339,7 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 			groupe.add (complete);
 			groupe.add (filtered);
 			
-			/*FormLayout layout = new FormLayout (
-					"pref:grow",
-					"fill:[100dlu,min]:grow");*/
+
 			FormLayout layout = new FormLayout (
 					"pref, 25dlu, pref, 25dlu, pref, 25dlu, pref, 75dlu, pref",
 					"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p");
@@ -429,7 +423,6 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 			return builder.getPanel();
 		}
 		public void aboutToHidePanel(){
-			//notifyObservers(listOfTissues,selectedTissues);
 			if (filtered.isSelected()){
 				tissueControler.query(selectedTissues, cutoff.getText());
 			}
@@ -520,7 +513,6 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 
 		public void displayingPanel()
 		{
-
 			SwingWorker<Void, Void> sw = new SwingWorker<Void, Void>() {
 				@Override protected Void doInBackground() throws Exception {
 					pk.setTaskName("Importing pathway");
@@ -596,17 +588,12 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 		ColorGradient gradient = new ColorGradient();
 		cs.setGradient(gradient);
 
+		double lowerbound = makeRoundNumber (3); 
+		double upperbound = makeRoundNumber (10);
 
-		//double lowerbound = makeRoundNumber (info.getMinimum() - info.getMinimum() / 10); 
-		//double upperbound = makeRoundNumber (info.getMaximum() + info.getMaximum() / 10);
-		double lowerbound = makeRoundNumber (0); 
-		double upperbound = makeRoundNumber (14);
+		gradient.addColorValuePair(new ColorValuePair(Color.GRAY, lowerbound));
+		gradient.addColorValuePair(new ColorValuePair(Color.BLUE, upperbound));
 
-		gradient.addColorValuePair(new ColorValuePair(Color.RED, lowerbound));
-		gradient.addColorValuePair(new ColorValuePair(Color.YELLOW, upperbound));
-
-//		String visuName = "toto";
-//		Visualization v = new Visualization(visuName);
 		Visualization v = new Visualization("auto-generated");
 
 		ColorByExpression cby = new ColorByExpression(standaloneEngine.getGexManager(), 
@@ -626,12 +613,6 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 
 		DataNodeLabel dnl = new DataNodeLabel();
 		v.addMethod(dnl);
-		//Visualization active = standaloneEngine.getVisualizationManager().getActiveVisualization();
-		//		if (active!= null ){
-		//			if (active.getName()==visuName){		
-		//visMgr.removeVisualization(v);
-		//			}		
-		//		}
 		visMgr.addVisualization(v);
 		visMgr.setActiveVisualization(v);
 	}

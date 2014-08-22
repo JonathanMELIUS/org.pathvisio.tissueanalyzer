@@ -88,7 +88,6 @@ public class TissuePlugin implements Plugin
 				TissueControler controler = new TissueControler(analyser);
 				TissueWizard wizard = new TissueWizard(desktop,controler);
 				analyser.addObserver(wizard);
-				//wizard.addObserver(mySideBarPanel);
 				wizard.showModalDialog(desktop.getSwingEngine().getFrame());
 			}		
 		}

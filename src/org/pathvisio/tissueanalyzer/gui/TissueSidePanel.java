@@ -57,9 +57,7 @@ import org.pathvisio.visualization.plugins.LegendPanel;
  */
 
 public class TissueSidePanel extends JPanel 
-	implements ActionListener,GexManagerListener, TableModelListener
-	//,ApplicationEventListener
-{
+	implements ActionListener,GexManagerListener, TableModelListener{
 
 	private JPanel panel;
 	private PvDesktop standaloneEngine;
@@ -73,14 +71,12 @@ public class TissueSidePanel extends JPanel
 	public TissueSidePanel(PvDesktop standaloneEngine){
 		this.standaloneEngine = standaloneEngine;
 		this.standaloneEngine.getGexManager().addListener(this);
-		//this.standaloneEngine.getSwingEngine().getEngine().addApplicationEventListener(this);
 		
 		legendPane = new LegendPanel(standaloneEngine.getVisualizationManager());
-		//legendPane.setSize(200, 200);
 		legendPane.setPreferredSize(new Dimension(150,150));
 		legendPane.setBorder(null);		
 		
-		calcul = new JButton("Calcul");
+		calcul = new JButton("Calculate");
 		calcul.addActionListener(this);
 
 		dtm = new MyTableModel();	
@@ -88,22 +84,10 @@ public class TissueSidePanel extends JPanel
 		table.getModel().addTableModelListener(this);
 		table.setFillsViewportHeight(true);
         table.setAutoCreateRowSorter(true);
-		
-//        panel = new JPanel();
-//		panel.setLayout (new GridLayout(0,1));
-//		panel.add(calcul);
-//        panel.add(new JScrollPane(table));
-//        panel.add(legendPane);
-//        add(panel);
-        
-//		add(calcul, BorderLayout.PAGE_START);        
-//        setLayout( new GridLayout(0,1));
-//		add(new JScrollPane(table), BorderLayout.PAGE_END);
-//		add(legendPane, BorderLayout.EAST);
+
         
         setLayout(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
-      //c.fill = GridBagConstraints.HORIZONTAL;
         c.weightx = 0.5;
         c.gridx = 0;
         c.gridy = 1;
@@ -151,7 +135,7 @@ public class TissueSidePanel extends JPanel
 					for ( ISample is : names) {
 						for (IRow ir : pwData){
 							if ( !is.getName().equals(" Gene Name")){
-								Double value =  (double) ir.getSampleData(is);
+								Double value =  (Double) ir.getSampleData(is);
 								String dd = ir.getXref().getId();
 								TissueResult tr = new TissueResult(dd,value);								
 								data.get(is.getName().trim()).add(tr);
@@ -160,7 +144,9 @@ public class TissueSidePanel extends JPanel
 					}					
 				}
 			}
-		} catch (DataException | IDMapperException e) {
+		} catch (DataException e) {
+			e.printStackTrace();
+		} catch (IDMapperException e) {
 			e.printStackTrace();
 		}
 
@@ -221,39 +207,14 @@ public class TissueSidePanel extends JPanel
 			createContent();
 			break;
 		case GexManagerEvent.CONNECTION_CLOSED:
-			//panel.removeAll();
 			break;
 		default:
-			assert (false); // Shouldn't occur.
+			assert (false);
 		}
 	}
 
-//	public class TissueResult {
-//		String gene;
-//		double expression;
-//		public TissueResult(String gene, double expression){
-//			this.gene=gene;
-//			this.expression=expression;
-//		}
-//		public String toString(){
-//			return gene+" "+String.valueOf(expression);			
-//		}
-//		public String getGene() {
-//			return gene;
-//		}
-//		public double getExpression() {
-//			return expression;
-//		}
-//		public void setGene(String gene) {
-//			this.gene = gene;
-//		}
-//		public void setExpression(double expression) {
-//			this.expression = expression;
-//		}
-//	}
-
 	class MyTableModel extends AbstractTableModel {
-		public String[] m_colNames = { "Tissues", "Vizu", "Percent", "Mean" };
+		public String[] m_colNames = { "Tissues", "Visualisation", "Percent", "Mean" };
 
 		public Class[] m_colTypes = 
 			{ String.class, Boolean.class, Double.class, Double.class};
@@ -363,11 +324,11 @@ public class TissueSidePanel extends JPanel
 		ColorGradient gradient = new ColorGradient();
 		cs.setGradient(gradient);
 
-		double lowerbound = 0; 
-		double upperbound = 14;
+		double lowerbound = 3; 
+		double upperbound = 10;
 
-		gradient.addColorValuePair(new ColorValuePair(Color.RED, lowerbound));
-		gradient.addColorValuePair(new ColorValuePair(Color.YELLOW, upperbound));
+		gradient.addColorValuePair(new ColorValuePair(Color.GRAY, lowerbound));
+		gradient.addColorValuePair(new ColorValuePair(Color.BLUE, upperbound));
 
 		Visualization v = new Visualization("auto-generated");
 
@@ -401,86 +362,6 @@ public class TissueSidePanel extends JPanel
 		visMgr.setActiveVisualization(v);
 
 	}
-//	public void stat(){
-//
-//		List<Xref> xrefs = standaloneEngine.getSwingEngine().getEngine().getActivePathway().getDataNodeXrefs();
-//		Set<Xref> setRefs = new HashSet<Xref>(xrefs);
-//
-//		DataInterface gex = standaloneEngine.getGexManager().getCurrentGex();
-//		CachedData cache = standaloneEngine.getGexManager().getCachedData();
-//		Collection<? extends ISample> names = null;
-//
-//
-//		Map<String,List<TissueResult>> data = 
-//				new TreeMap<String,List<TissueResult>>();
-//		try {			
-//			names = gex.getOrderedSamples();
-//
-//			for ( ISample is : names){
-//				if ( !is.getName().equals(" Gene Name")){
-//					data.put(is.getName().trim(),new ArrayList<TissueResult>());
-//				}
-//			}			
-//			for (Xref ref : setRefs){
-//				List<? extends IRow> pwData = cache.syncGet(ref);
-//				if (!pwData.isEmpty()){
-//					for ( ISample is : names) {
-//						for (IRow ir : pwData){
-//							if ( !is.getName().equals(" Gene Name")){
-//								Double value =  (double) ir.getSampleData(is);
-//								String dd = ir.getXref().getId();
-//								TissueResult tr = new TissueResult(dd,value);								
-//								data.get(is.getName().trim()).add(tr);
-//							}
-//						}
-//					}					
-//				}
-//			}
-//		} catch (DataException | IDMapperException e) {
-//			e.printStackTrace();
-//		}
-//
-//		Vector<Double> vP = new Vector<Double>();
-//		Vector<Double> vM = new Vector<Double>();
-//
-//		for(Entry<String, List<TissueResult>> entry : data.entrySet()) {
-//			System.out.println(entry.getKey()+"  "+entry.getValue());
-//			int length = entry.getValue().size();
-//			double i = 0;
-//			double tmp = 0;
-//			for( TissueResult tr: entry.getValue()){
-//				if (tr.expression >= (2/ Math.log10(2)) ){
-//					i++;
-//
-//				}
-//				tmp += tr.expression;
-//			}
-//			vP.add(i/length*100);
-//			vM.add(tmp/length);
-//
-//			System.out.println(i/length*100);			
-//		}
-//		dtm.addCollum(vP, 2);
-//		dtm.addCollum(vM, 3);		
-//	}
-//
-////	class pathListener implements ApplicationEventListener{
-////
-////		@Override
-////		public void applicationEvent(ApplicationEvent e) {
-////			if(e.getType() == ApplicationEvent.Type.PATHWAY_OPENED 
-////					& standaloneEngine.getSwingEngine().getGdbManager().getCurrentGdb().isConnected()){				
-////					stat();		
-////			}
-////		}
-////	}
-//	@Override
-//	public void applicationEvent(ApplicationEvent e) {
-//		if(e.getType() == ApplicationEvent.Type.PATHWAY_OPENED 
-//				& standaloneEngine.getSwingEngine().getGdbManager().getCurrentGdb().isConnected()){				
-//				stat();		
-//		}		
-//	}
 }
 
 

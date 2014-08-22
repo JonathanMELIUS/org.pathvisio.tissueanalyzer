@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -94,6 +95,9 @@ public class TissueAnalyser extends AbstractAnalyser {
 							log2 = Math.round(log2*100.0)/100.0;
 							data.set(i, String.valueOf(log2));
 						}
+						else{
+							data.set(i,"0.0");
+						}
 					}
 					for (String s : data)
 					{
@@ -144,48 +148,165 @@ public class TissueAnalyser extends AbstractAnalyser {
 		importInformation.setIdColumn(0);
 		notifyObservers(importInformation);
 
-//	} catch (IOException e) {
-//		e.printStackTrace();
-//	}
-}
-
-/**
- * update the list of tissues from the experiment
- */
-public void queryTissuesList(String experiment) {
-	ArrayList<String> tissuesList = new ArrayList<String>();
-	try { 
-		URL url = new URL ("http://www.ebi.ac.uk/gxa/experiments/"
-				+ experiment+".tsv?accessKey=&serializedFilterFactors="
-				+ "&queryFactorType=ORGANISM_PART&rootContext="
-				+ "&heatmapMatrixSize=50"
-				+ "&displayLevels=false&displayGeneDistribution=true"
-				+ "&geneQuery=&exactMatch=true&_exactMatch=on"
-				+ "&_geneSetMatch=on&_queryFactorValues=1"
-				+ "&specific=true&_specific=on&cutoff=10000");
-
-		InputStream is = url.openStream();
-		BufferedReader br = new BufferedReader(new InputStreamReader(is));
-		String line;
-		while ((line = br.readLine()) != null )
-		{								
-			if ( line.contains(gene_ID) ) {
-				tissuesList = new ArrayList<String>(Arrays.asList(line.split("\t")));
-				tissuesList.remove(gene_Name);
-				tissuesList.remove(gene_ID);
-			}				
-		}
-		br.close();
-		is.close();
-	} catch (IOException e) {
-		e.printStackTrace();
+		//	} catch (IOException e) {
+		//		e.printStackTrace();
+		//	}
 	}
-	notifyObservers(tissuesList,experiment);
-}
 
-public void settings(String experiment,String outFile){
-	importInformation.setGexName(outFile);
-	this.experiment=experiment;
-	notifyObservers(importInformation);
-}
+	/**
+	 * update the list of tissues from the experiment
+	 */
+	public void queryTissuesList(String experiment) {
+		ArrayList<String> tissuesList = new ArrayList<String>();
+		try { 
+			URL url = new URL ("http://www.ebi.ac.uk/gxa/experiments/"
+					+ experiment+".tsv?accessKey=&serializedFilterFactors="
+					+ "&queryFactorType=ORGANISM_PART&rootContext="
+					+ "&heatmapMatrixSize=50"
+					+ "&displayLevels=false&displayGeneDistribution=true"
+					+ "&geneQuery=&exactMatch=true&_exactMatch=on"
+					+ "&_geneSetMatch=on&_queryFactorValues=1"
+					+ "&specific=true&_specific=on&cutoff=10000");
+
+			InputStream is = url.openStream();
+			BufferedReader br = new BufferedReader(new InputStreamReader(is));
+			String line;
+			while ((line = br.readLine()) != null )
+			{								
+				if ( line.contains(gene_ID) ) {
+					tissuesList = new ArrayList<String>(Arrays.asList(line.split("\t")));
+					tissuesList.remove(gene_Name);
+					tissuesList.remove(gene_ID);
+				}				
+			}
+			br.close();
+			is.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		notifyObservers(tissuesList,experiment);
+	}
+
+	public void settings(String experiment,String outFile){
+		importInformation.setGexName(outFile);
+		this.experiment=experiment;
+		notifyObservers(importInformation);
+	}
+
+	public void querySelect(){
+		String organQuery="";
+		for (String organ : selectedTissues){
+			organ = organ.replaceAll("\\s", "+");
+			organQuery += "&queryFactorValues="+organ;
+		}	
+		String tDir = System.getProperty("java.io.tmpdir");
+		File filename = null;
+		try {
+			filename = File.createTempFile(tDir+"AtlasQuery", ".tmp");
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		filename.deleteOnExit();
+		ArrayList<String> result = new ArrayList<String>();
+		URL url = null;
+		try {
+			url = new URL("http://www.ebi.ac.uk/gxa/experiments/E-MTAB-513.tsv?"+
+					"accessKey=&serializedFilterFactors="+
+					"&queryFactorType=ORGANISM_PART" +
+					"&rootContext=&heatmapMatrixSize=50"+
+					"&displayLevels=false&displayGeneDistribution=false" +
+					"&geneQuery=&exactMatch=true&_exactMatch=on&_geneSetMatch=on"+
+					organQuery+
+					"&_queryFactorValues=1" +
+					"&specific=true" +
+					"&_specific=on" +
+					"&cutoff="+cutoff+"");
+		}
+		catch (MalformedURLException e1) {
+			e1.printStackTrace();
+		}			
+
+		try {
+			InputStream is = url.openStream();
+			BufferedReader br = new BufferedReader(new InputStreamReader(is));
+
+			ArrayList<Integer> indexList = new ArrayList<Integer>();
+			String line;
+			boolean dataRow = false;
+			while ((line = br.readLine()) != null )
+			{	
+				String tmp = "";
+				if (dataRow){
+					Pattern p = Pattern.compile("\t");
+					Matcher m = p.matcher(line);
+					String replace = m.replaceAll("\t0");
+					ArrayList<String> data = new ArrayList<String>(Arrays.asList(replace.split("\t")));
+					for (int index : indexList){
+						if (index==0){
+							tmp +=data.get(index)+"\t";
+						}
+						else {
+							if (data.get(index).matches("[-+]?\\d+(\\.\\d+)?")){
+								double logi = Math.log10(Double.parseDouble(data.get(index))+1);
+								double log2 = logi / Math.log10(2);
+								log2 = Math.round(log2*100.0)/100.0;
+								tmp +=String.valueOf(log2)+"\t";
+								data.set(index, String.valueOf(log2));
+							}
+							else{
+								tmp +="0.0"+"\t";
+								data.set(index,"0.0");
+							}
+						}
+					}
+					//System.out.println("data"+tmp);
+
+				}
+				if ( line.contains(gene_ID) ) {
+					ArrayList<String> data = new ArrayList<String>(Arrays.asList(line.split("\t")));
+					for ( String header : data){
+						if ( header.equals(gene_ID) || selectedTissues.contains(header) ) {
+							int index = data.lastIndexOf(header);
+							indexList.add(index);
+							tmp +=header+"\t";
+							//System.out.println(index);
+						}    					
+					}
+					dataRow = true;
+					//System.out.println(tmp);
+				}
+				if (tmp!="")result.add(tmp);
+			}
+			br.close();
+			is.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		PrintWriter pw = null;
+		try {
+			pw = new PrintWriter(new FileOutputStream(filename));//filename
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		for (String res : result)
+			pw.println(res);
+		pw.close();
+
+		DataSource ds = DataSource.getBySystemCode("En");
+
+		try {
+			importInformation.setTxtFile(filename);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		importInformation.setFirstDataRow(1);
+		importInformation.setFirstHeaderRow(0);
+		importInformation.guessSettings();
+		importInformation.setDelimiter("\t");
+		importInformation.setSyscodeFixed(true);
+		importInformation.setDataSource(ds);
+		importInformation.setIdColumn(0);
+		notifyObservers(importInformation);
+	}
+
 }
