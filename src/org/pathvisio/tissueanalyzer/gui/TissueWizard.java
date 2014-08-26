@@ -1,5 +1,20 @@
+// TissueAnalyzer plugin for Pathvisio
+// Copyright 2014 BiGCaT Bioinformatics
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
 package org.pathvisio.tissueanalyzer.gui;
-//PathVisio,
 //a tool for data visualization and analysis using Biological Pathways
 //Copyright 2006-2011 BiGCaT Bioinformatics
 //
@@ -16,22 +31,18 @@ package org.pathvisio.tissueanalyzer.gui;
 //limitations under the License.
 //
 
-
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -39,7 +50,6 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
@@ -48,7 +58,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.bridgedb.IDMapperException;
-import org.bridgedb.IDMapperStack;
 import org.bridgedb.rdb.construct.DBConnector;
 import org.pathvisio.core.debug.Logger;
 import org.pathvisio.core.preferences.GlobalPreference;
@@ -62,18 +71,14 @@ import org.pathvisio.data.DataInterface;
 import org.pathvisio.data.ISample;
 import org.pathvisio.desktop.PvDesktop;
 import org.pathvisio.desktop.data.DBConnectorSwing;
-import org.pathvisio.desktop.gex.CachedData;
 import org.pathvisio.desktop.visualization.ColorGradient;
 import org.pathvisio.desktop.visualization.ColorGradient.ColorValuePair;
 import org.pathvisio.desktop.visualization.ColorSet;
 import org.pathvisio.desktop.visualization.ColorSetManager;
-import org.pathvisio.desktop.visualization.Criterion;
 import org.pathvisio.desktop.visualization.Visualization;
 import org.pathvisio.desktop.visualization.VisualizationManager;
 import org.pathvisio.gexplugin.GexTxtImporter;
 import org.pathvisio.gexplugin.ImportInformation;
-import org.pathvisio.statistics.StatisticsResult;
-import org.pathvisio.statistics.ZScoreCalculator;
 import org.pathvisio.tissueanalyzer.plugin.TissueControler;
 import org.pathvisio.tissueanalyzer.utils.ObservableSidePanel;
 import org.pathvisio.tissueanalyzer.utils.ObserverSidePanel;

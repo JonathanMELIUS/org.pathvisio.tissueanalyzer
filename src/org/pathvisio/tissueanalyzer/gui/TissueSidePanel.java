@@ -1,11 +1,25 @@
+// TissueAnalyzer plugin for Pathvisio
+// Copyright 2014 BiGCaT Bioinformatics
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
 package org.pathvisio.tissueanalyzer.gui;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -28,8 +42,6 @@ import javax.swing.table.AbstractTableModel;
 
 import org.bridgedb.IDMapperException;
 import org.bridgedb.Xref;
-import org.pathvisio.core.ApplicationEvent;
-import org.pathvisio.core.Engine.ApplicationEventListener;
 import org.pathvisio.data.DataException;
 import org.pathvisio.data.DataInterface;
 import org.pathvisio.data.IRow;
@@ -39,11 +51,11 @@ import org.pathvisio.desktop.gex.CachedData;
 import org.pathvisio.desktop.gex.GexManager.GexManagerEvent;
 import org.pathvisio.desktop.gex.GexManager.GexManagerListener;
 import org.pathvisio.desktop.visualization.ColorGradient;
+import org.pathvisio.desktop.visualization.ColorGradient.ColorValuePair;
 import org.pathvisio.desktop.visualization.ColorSet;
 import org.pathvisio.desktop.visualization.ColorSetManager;
 import org.pathvisio.desktop.visualization.Visualization;
 import org.pathvisio.desktop.visualization.VisualizationManager;
-import org.pathvisio.desktop.visualization.ColorGradient.ColorValuePair;
 import org.pathvisio.tissueanalyzer.plugin.TissueResult;
 import org.pathvisio.tissueanalyzer.utils.ObserverSidePanel;
 import org.pathvisio.visualization.plugins.ColorByExpression;
@@ -59,7 +71,6 @@ import org.pathvisio.visualization.plugins.LegendPanel;
 public class TissueSidePanel extends JPanel 
 	implements ActionListener,GexManagerListener, TableModelListener{
 
-	private JPanel panel;
 	private PvDesktop standaloneEngine;
 	private Vector<String> vT;
 	private Vector<Boolean> vB;
