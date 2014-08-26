@@ -69,7 +69,7 @@ import org.pathvisio.visualization.plugins.LegendPanel;
  */
 
 public class TissueSidePanel extends JPanel 
-	implements ActionListener,GexManagerListener, TableModelListener{
+	implements ActionListener,GexManagerListener, TableModelListener {
 
 	private PvDesktop standaloneEngine;
 	private Vector<String> vT;
@@ -96,7 +96,6 @@ public class TissueSidePanel extends JPanel
 		table.setFillsViewportHeight(true);
         table.setAutoCreateRowSorter(true);
 
-        
         setLayout(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
         c.weightx = 0.5;
@@ -117,7 +116,6 @@ public class TissueSidePanel extends JPanel
         c.gridy = 0;
         c.gridwidth = 2; 
         add(new JScrollPane(table), c);
-       
 	}
 
 	@Override
@@ -181,7 +179,8 @@ public class TissueSidePanel extends JPanel
 		dtm.addCollum(vP, 2);
 		dtm.addCollum(vM, 3);		
 	}
-	public void createContent(){		
+	
+	private void createContent(){		
 		ArrayList<String> listOfTissues = new ArrayList<String>() ;		
 		try {
 			List<? extends ISample> names = standaloneEngine.getGexManager().
@@ -224,16 +223,16 @@ public class TissueSidePanel extends JPanel
 		}
 	}
 
-	class MyTableModel extends AbstractTableModel {
-		public String[] m_colNames = { "Tissues", "Visualisation", "Percent", "Mean" };
+	private class MyTableModel extends AbstractTableModel {
+		private String[] m_colNames = { "Tissues", "Visualisation", "Percent", "Mean" };
 
-		public Class[] m_colTypes = 
+		private Class[] m_colTypes = 
 			{ String.class, Boolean.class, Double.class, Double.class};
 
-		public Vector<String> name;
-		public Vector<Boolean> vizu;
-		public Vector<Double> perc;
-		public Vector<Double> mean;
+		private Vector<String> name;
+		private Vector<Boolean> vizu;
+		private Vector<Double> perc;
+		private Vector<Double> mean;
 
 		public MyTableModel() {
 			super();
@@ -244,7 +243,7 @@ public class TissueSidePanel extends JPanel
 		}
 
 
-		public void addCollum(Vector data, int col){
+		private void addCollum(Vector data, int col){
 			switch (col) {
 			case 0:
 				this.name = data;
@@ -325,6 +324,7 @@ public class TissueSidePanel extends JPanel
 			return new String();
 		}
 	}
+	
 	@Override
 	public void tableChanged(TableModelEvent arg0) {
 		VisualizationManager visMgr = standaloneEngine.getVisualizationManager(); 
@@ -338,8 +338,8 @@ public class TissueSidePanel extends JPanel
 		double lowerbound = 3; 
 		double upperbound = 10;
 
-		gradient.addColorValuePair(new ColorValuePair(Color.GRAY, lowerbound));
-		gradient.addColorValuePair(new ColorValuePair(Color.BLUE, upperbound));
+		gradient.addColorValuePair(new ColorValuePair(new Color(218, 242, 249), lowerbound));
+		gradient.addColorValuePair(new ColorValuePair(new Color(0, 0, 255), upperbound));
 
 		Visualization v = new Visualization("auto-generated");
 

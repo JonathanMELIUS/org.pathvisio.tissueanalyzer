@@ -98,8 +98,7 @@ import com.nexes.wizard.WizardPanelDescriptor;
  * from Expression Atlas in PathVisio.
  * @author Jonathan Melius
  */
-public class TissueWizard extends Wizard implements ObserverTissue, ObservableSidePanel
-{
+public class TissueWizard extends Wizard implements ObserverTissue, ObservableSidePanel {
 	private ImportInformation importInformation;	
 
 	private ArrayList<ObserverSidePanel> observers;
@@ -120,8 +119,7 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 
 	public static Map<String,ArrayList<String>> tissuemap = new HashMap<String,ArrayList<String>>();
 
-	public TissueWizard (PvDesktop standaloneEngine, TissueControler tc)
-	{
+	public TissueWizard (PvDesktop standaloneEngine, TissueControler tc) {
 		this.standaloneEngine = standaloneEngine;
 		this.tissueControler = tc;
 		experiment="";
@@ -138,8 +136,7 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 		setCurrentPanel(FilePage.IDENTIFIER);
 	}
 
-	private class FilePage extends WizardPanelDescriptor implements ActionListener
-	{
+	private class FilePage extends WizardPanelDescriptor implements ActionListener {
 		public static final String IDENTIFIER = "FILE_PAGE";
 		private static final String ACTION_OUTPUT = "output";
 		private static final String ACTION_GDB = "gdb";
@@ -151,41 +148,35 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 		private ButtonGroup group;
 		private boolean txtOutputComplete;
 
-		public void aboutToDisplayPanel()
-		{
+		public void aboutToDisplayPanel() {
 			getWizard().setNextFinishButtonEnabled(txtOutputComplete);
 			getWizard().setPageTitle ("Choose an experiments and the file locations");
 		}
 
-		public FilePage()
-		{
+		public FilePage() {
 			super(IDENTIFIER);
 		}
 
-		public Object getNextPanelDescriptor()
-		{
+		public Object getNextPanelDescriptor() {
 			return TissuesPage.IDENTIFIER;
 		}
 
-		public Object getBackPanelDescriptor()
-		{
+		public Object getBackPanelDescriptor() {
 			return null;
 		}
 		/**
 		 * Check the text output field. If it's empty the user can't continue
 		 */
-		public void updateTxt(){
-			if (txtOutput.getText().equals("")){
+		public void updateTxt() {
+			if (txtOutput.getText().equals("")) {
 				txtOutputComplete=false;
-			}
-			else {				
+			} else {				
 				txtOutputComplete = true;					
 			}
 			getWizard().setNextFinishButtonEnabled(txtOutputComplete);
 		}
 
-		protected JPanel createContents()
-		{
+		protected JPanel createContents() {
 			txtOutput = new JTextField(40);
 			txtGdb = new JTextField(40);
 			btnGdb = new JButton ("Browse");;
@@ -235,33 +226,25 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 					PreferenceManager.getCurrent()
 					.get(GlobalPreference.DB_CONNECTSTRING_GDB)
 					);
-			txtOutput.getDocument().addDocumentListener(new DocumentListener()
-			{
-				public void changedUpdate(DocumentEvent arg0)
-				{
+			txtOutput.getDocument().addDocumentListener(new DocumentListener() {
+				public void changedUpdate(DocumentEvent arg0) {
 					updateTxt();
 				}
 
-				public void insertUpdate(DocumentEvent arg0)
-				{
+				public void insertUpdate(DocumentEvent arg0) {
 					updateTxt();
 				}
 
-				public void removeUpdate(DocumentEvent arg0)
-				{
+				public void removeUpdate(DocumentEvent arg0) {
 					updateTxt();
 				}
-
 			});
 			return builder.getPanel();
 		}
 
-		public void aboutToHidePanel()
-		{
+		public void aboutToHidePanel() {
 			experiment = group.getSelection().getActionCommand();
 			tissueControler.control(experiment, txtOutput.getText());
-
-
 		}
 
 		public void actionPerformed(ActionEvent e) {
@@ -273,8 +256,7 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 						PreferenceManager.getCurrent()
 						.get(GlobalPreference.DB_CONNECTSTRING_GDB)
 						);
-			}
-			else if(ACTION_OUTPUT.equals(action)) {
+			} else if(ACTION_OUTPUT.equals(action)) {
 				try {
 					DBConnector dbConn = standaloneEngine.getGexManager().getDBConnector();
 					String output = ((DBConnectorSwing)dbConn).openNewDbDialog(
@@ -295,8 +277,7 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 		}
 	}
 
-	private class TissuesPage extends WizardPanelDescriptor 
-	{
+	private class TissuesPage extends WizardPanelDescriptor {
 		public static final String IDENTIFIER = "TISSUES_PAGE";
 		private JTextField cutoff;
 
@@ -309,28 +290,24 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 		private JRadioButton complete;
 		private JRadioButton filtered;
 	
-		public TissuesPage()
-		{	
+		public TissuesPage() {	
 			super(IDENTIFIER);
 		}
-		public void aboutToDisplayPanel()
-		{
+		
+		public void aboutToDisplayPanel() {
 			getWizard().setPageTitle ("Choose the tissues");
-			if (!tissuemap.containsKey(experiment)){
+			if (!tissuemap.containsKey(experiment)) {
 				tissueControler.queryTissuesList(experiment);
-			}
-			else{
+			} else {
 				listOfTissues = tissuemap.get(experiment);
 			}
 			choice_list.setListData(listOfTissues.toArray());
 		}
-		public Object getNextPanelDescriptor()
-		{
+		public Object getNextPanelDescriptor() {
 			return ImportPage.IDENTIFIER;
 		}
 
-		public Object getBackPanelDescriptor()
-		{
+		public Object getBackPanelDescriptor() {
 			return FilePage.IDENTIFIER;
 		}
 
@@ -372,8 +349,8 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 			add = new JButton(">>");
 			add.addActionListener(new ActionListener(){
 				public void actionPerformed(ActionEvent e) {
-					for (  Object tissue : choice_list.getSelectedValues() ){
-						if (!selectedTissues.contains(tissue)){
+					for (Object tissue : choice_list.getSelectedValues()) {
+						if (!selectedTissues.contains(tissue)) {
 							selectedTissues.add((String) tissue);
 							selected_list.setListData(selectedTissues.toArray());
 						}
@@ -381,7 +358,7 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 				}
 			});
 			remove = new JButton("<<");
-			remove.addActionListener(new ActionListener(){
+			remove.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					for(Object str : selected_list.getSelectedValues()) {
 						selectedTissues.remove(str);
@@ -396,16 +373,14 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 			remove.setEnabled(false);
 			cutoff.setEnabled(false);
 			ActionListener rbAction = new ActionListener() {
-				public void actionPerformed (ActionEvent ae)
-				{
-					if (filtered.isSelected()){
+				public void actionPerformed (ActionEvent ae) {
+					if (filtered.isSelected()) {
 						selected_list.setEnabled(true);
 						choice_list.setEnabled(true);
 						add.setEnabled(true);
 						remove.setEnabled(true);
 						cutoff.setEnabled(true);
-					}
-					else{
+					} else {
 						selected_list.setEnabled(false);
 						choice_list.setEnabled(false);
 						add.setEnabled(false);
@@ -427,34 +402,28 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 
 			return builder.getPanel();
 		}
-		public void aboutToHidePanel(){
-			if (filtered.isSelected()){
+		
+		public void aboutToHidePanel() {
+			if(filtered.isSelected()) {
 				tissueControler.query(selectedTissues, cutoff.getText());
-			}
-			else{
+			} else {
 				tissueControler.query(new ArrayList<String>(), "0");
 			}
-
-
 		}
 	}
 
-	private class ImportPage extends WizardPanelDescriptor implements ProgressListener
-	{
+	private class ImportPage extends WizardPanelDescriptor implements ProgressListener {
 		public static final String IDENTIFIER = "IMPORT_PAGE";
 
-		public ImportPage()
-		{
+		public ImportPage() {
 			super(IDENTIFIER);
 		}
 
-		public Object getNextPanelDescriptor()
-		{
+		public Object getNextPanelDescriptor() {
 			return FINISH;
 		}
 
-		public Object getBackPanelDescriptor()
-		{
+		public Object getBackPanelDescriptor() {
 			return TissuesPage.IDENTIFIER;
 		}
 
@@ -464,14 +433,12 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 		private JLabel lblTask;
 
 		@Override
-		public void aboutToCancel()
-		{
+		public void aboutToCancel() {
 			// let the progress keeper know that the user pressed cancel.
 			pk.cancel();
 		}
 
-		protected JPanel createContents()
-		{
+		protected JPanel createContents() {
 			FormLayout layout = new FormLayout(
 					"fill:[100dlu,min]:grow",
 					"pref, pref, fill:pref:grow"
@@ -494,20 +461,15 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 			return builder.getPanel();
 		}
 
-		public void setProgressValue(int i)
-		{
+		public void setProgressValue(int i) {
 			progressSent.setValue(i);
 		}
 
-		public void setProgressText(String msg)
-		{
+		public void setProgressText(String msg) {
 			progressText.setText(msg);
 		}
-		public void aboutToHidePanel(){
-
-		}
-		public void aboutToDisplayPanel()
-		{
+		
+		public void aboutToDisplayPanel() {
 			getWizard().setPageTitle ("Perform import");
 			setProgressValue(0);
 			setProgressText("");
@@ -516,13 +478,11 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 			getWizard().setBackButtonEnabled(false);
 		}
 
-		public void displayingPanel()
-		{
+		public void displayingPanel() {
 			SwingWorker<Void, Void> sw = new SwingWorker<Void, Void>() {
 				@Override protected Void doInBackground() throws Exception {
 					pk.setTaskName("Importing pathway");
-					try
-					{						
+					try {						
 						GexTxtImporter.importFromTxt(
 								importInformation,
 								pk,
@@ -535,9 +495,7 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 							System.out.println("titi");
 							createDefaultVisualization(importInformation);
 						
-					} 
-					catch (Exception e) 
-					{
+					} catch (Exception e) {
 						Logger.log.error ("During import", e);
 						setProgressValue(0);
 						setProgressText("An Error Has Occurred: " + e.getMessage() + "\nSee the log for details");
@@ -549,20 +507,16 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 					return null;
 				}
 
-				@Override public void done()
-				{
+				@Override public void done() {
 					getWizard().setNextFinishButtonEnabled(true);
 					getWizard().setBackButtonEnabled(true);
-
 				}
 			};
 			sw.execute();			
 		}
 
-		public void progressEvent(ProgressEvent e)
-		{
-			switch(e.getType())
-			{
+		public void progressEvent(ProgressEvent e) {
+			switch(e.getType()) {
 			case ProgressEvent.FINISHED:
 				progressSent.setValue(pk.getTotalWork());
 			case ProgressEvent.TASK_NAME_CHANGED:
@@ -577,14 +531,13 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 			}
 		}
 	}
-	static double makeRoundNumber(double input)
-	{
+	
+	private static double makeRoundNumber(double input) {
 		double order = Math.pow(10, Math.round(Math.log10(input))) / 10;
 		return Math.round (input / order) * order;
 	}
 
-	private void createDefaultVisualization(ImportInformation info) throws IDMapperException, DataException
-	{
+	private void createDefaultVisualization(ImportInformation info) throws IDMapperException, DataException {
 		VisualizationManager visMgr = standaloneEngine.getVisualizationManager(); 
 		ColorSetManager csmgr = visMgr.getColorSetManager();
 		ColorSet cs = new ColorSet(csmgr);
@@ -609,7 +562,7 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 		for(Entry<Integer, ? extends ISample> entry : samplesMap.entrySet()) {
 			ISample value = entry.getValue();
 			String tissues = value.getName().trim();			
-			if ( selectedTissues.contains(tissues)){
+			if ( selectedTissues.contains(tissues)) {
 				cby.addUseSample(value);
 			}
 		}
@@ -629,7 +582,7 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 
 	@Override
 	public void notifyObservers(ArrayList<String> listOfTissues,ArrayList<String> selected) {
-		for (ObserverSidePanel obs : observers){
+		for (ObserverSidePanel obs : observers) {
 			obs.update(listOfTissues,selected);
 		}
 	}

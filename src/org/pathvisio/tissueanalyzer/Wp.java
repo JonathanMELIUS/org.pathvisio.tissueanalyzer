@@ -46,7 +46,15 @@ import org.pathvisio.desktop.gex.GexManager;
 import org.pathvisio.desktop.gex.SimpleGex;
 import org.pathvisio.tissueanalyzer.plugin.TissueResult;
 
-class Wp implements Comparable<Object>{
+/**
+ * 
+ * Main method that is used to calculate
+ * tissue pathway statistics on WikiPathways
+ * 
+ * @author Jonathan Melius
+ * 
+ */
+public class Wp implements Comparable<Object>{
 
 	private String path_id;
 	private Double mean;
@@ -119,15 +127,12 @@ class Wp implements Comparable<Object>{
 		Pathway p = new Pathway();
 		Map <Xref,String> labelMap = new HashMap<Xref,String>();
 		
-		
-		
 		CachedData cache = null;
 		Set<Xref> setRefs = null;
 		connector.setDbType(DBConnector.TYPE_GEX);
 
 		IDMapperStack currentGdb = new IDMapperStack();
 		currentGdb.addIDMapper(mapper);
-
 
 		try {
 			SimpleGex simple = new SimpleGex (pgex.getAbsolutePath(), false, connector);
@@ -191,7 +196,7 @@ class Wp implements Comparable<Object>{
 			}
 
 		}
-		for(String ss : setty)
-			System.out.println(ss);
+//		for(String ss : setty)
+//			System.out.println(ss);
 	}
 }
