@@ -1,5 +1,6 @@
-// TissueAnalyzer plugin for Pathvisio
-// Copyright 2014 BiGCaT Bioinformatics
+// PathVisio,
+// a tool for data visualization and analysis using Biological Pathways
+// Copyright 2006-2011 BiGCaT Bioinformatics
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,28 +16,29 @@
 //
 package org.pathvisio.tissueanalyzer;
 
+
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.pathvisio.desktop.plugin.Plugin;
 import org.pathvisio.tissueanalyzer.plugin.TissuePlugin;
 
-/**
- * OSGi activator to register PathVisio plugin 
- * @author mkutmon
- * @author Jonathan Melius
- */
 public class Activator implements BundleActivator {
 
+	private static BundleContext context;
+
+	static BundleContext getContext() {
+		return context;
+	}
 	private TissuePlugin tissuePlugin;
 
-	 @Override
-	 public void start(BundleContext context) throws Exception {
+	@Override
+	public void start(BundleContext context) throws Exception {
 		tissuePlugin = new TissuePlugin();
-	    context.registerService(Plugin.class.getName(), tissuePlugin, null);
-	 }
+		context.registerService(Plugin.class.getName(), tissuePlugin, null);
+	}
 
-	 @Override
-	 public void stop(BundleContext context) throws Exception {
-	    tissuePlugin.done();
-	 }
+	@Override
+	public void stop(BundleContext context) throws Exception {
+		tissuePlugin.done();
+	}
 }

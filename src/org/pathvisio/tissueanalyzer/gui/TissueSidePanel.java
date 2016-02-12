@@ -22,8 +22,10 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -40,8 +42,13 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 
+import org.bridgedb.BridgeDb;
+import org.bridgedb.IDMapper;
 import org.bridgedb.IDMapperException;
 import org.bridgedb.Xref;
+import org.pathvisio.core.model.ConverterException;
+import org.pathvisio.core.model.Pathway;
+import org.pathvisio.core.model.PathwayElement;
 import org.pathvisio.data.DataException;
 import org.pathvisio.data.DataInterface;
 import org.pathvisio.data.IRow;
@@ -84,7 +91,7 @@ public class TissueSidePanel extends JPanel
 		this.standaloneEngine.getGexManager().addListener(this);
 		
 		legendPane = new LegendPanel(standaloneEngine.getVisualizationManager());
-		legendPane.setPreferredSize(new Dimension(150,150));
+		legendPane.setPreferredSize(new Dimension(100,100));
 		legendPane.setBorder(null);		
 		
 		calcul = new JButton("Calculate");
@@ -107,7 +114,7 @@ public class TissueSidePanel extends JPanel
         c.gridx = 1;
         c.gridy = 1;
         c.weightx = 0.1;
-        c.ipady = 10;
+//        c.ipady = 10;
         add(calcul, c);
         
         c = new GridBagConstraints();
@@ -119,14 +126,39 @@ public class TissueSidePanel extends JPanel
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent arg0) {		
+	public void actionPerformed(ActionEvent arg0) {	
+//		try {
+//			Class.forName("org.bridgedb.rdb.IDMapperRdb");
+//		} catch (ClassNotFoundException e2) {
+//			// TODO Auto-generated catch block
+//			e2.printStackTrace();
+//		}
+//		try {
+//			IDMapper mapper= BridgeDb.connect("idmapper-pgdb:/home/mael/Pathy/Hs_Derby_20130701.bridge");
+//			System.out.println("hy");
+//		} catch (IDMapperException e2) {
+//			// TODO Auto-generated catch block
+//			e2.printStackTrace();
+//		}
+//		Pathway p = new Pathway();
+//		File gpml = new File ("/home/mael/Pathy/hs/Hs_ACE_Inhibitor_Pathway_WP554_70881.gpml");
+//		try {
+//			p.readFromXml(gpml, true);
+//			for (PathwayElement e : p.getDataObjects()){
+//				System.out.println(e.getXref()+" "+e.getTextLabel());
+//			}
+//		} catch (ConverterException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+		
+		
 		List<Xref> xrefs = standaloneEngine.getSwingEngine().getEngine().getActivePathway().getDataNodeXrefs();
 		Set<Xref> setRefs = new HashSet<Xref>(xrefs);
 
 		DataInterface gex = standaloneEngine.getGexManager().getCurrentGex();
 		CachedData cache = standaloneEngine.getGexManager().getCachedData();
 		Collection<? extends ISample> names = null;
-
 
 		Map<String,List<TissueResult>> data = 
 				new TreeMap<String,List<TissueResult>>();
@@ -135,6 +167,7 @@ public class TissueSidePanel extends JPanel
 
 			for ( ISample is : names){
 				if ( !is.getName().equals(" Gene Name")){
+//					System.out.println(is.getName().trim());
 					data.put(is.getName().trim(),new ArrayList<TissueResult>());
 				}
 			}			
@@ -161,23 +194,41 @@ public class TissueSidePanel extends JPanel
 
 		Vector<Double> vP = new Vector<Double>();
 		Vector<Double> vM = new Vector<Double>();
+		Vector<Double> vD = new Vector<Double>();
 
 		for(Entry<String, List<TissueResult>> entry : data.entrySet()) {
 			int length = entry.getValue().size();
 			double i = 0;
 			double tmp = 0;
+			ArrayList<Double> foo = new ArrayList<Double>();
 			for( TissueResult tr: entry.getValue()){
 				if (tr.getExpression() >= (2/ Math.log10(2)) ){
 					i++;
-
 				}
 				tmp += tr.getExpression();
+				foo.add(tr.getExpression());
 			}
 			vP.add(i/length*100);
-			vM.add(tmp/length);		
+			vM.add(tmp/length);	
+			double median;			
+			Collections.sort(foo);
+			int s = foo.size() ;
+			if (s>0){
+				if (s% 2 == 0){				
+					median = ((double)foo.get(s/2) + (double)foo.get( (s/2)-1))/2;
+				}
+				else
+					median = foo.get(s/2);
+				median = Math.round(median*100.0)/100.0;
+			}
+			else{
+				median = 0.0;
+			}
+			vD.add(median);
 		}
 		dtm.addCollum(vP, 2);
-		dtm.addCollum(vM, 3);		
+		dtm.addCollum(vM, 3);
+		dtm.addCollum(vD, 4);
 	}
 	
 	private void createContent(){		
@@ -206,6 +257,7 @@ public class TissueSidePanel extends JPanel
 		dtm.addCollum(vB, 1);
 		dtm.addCollum(tmp, 2);
 		dtm.addCollum(tmp, 3);
+		dtm.addCollum(tmp, 4);
 	}
 
 	@Override
@@ -224,15 +276,16 @@ public class TissueSidePanel extends JPanel
 	}
 
 	private class MyTableModel extends AbstractTableModel {
-		private String[] m_colNames = { "Tissues", "Visualisation", "Percent", "Mean" };
+		private String[] m_colNames = { "Tissues", "Visualisation", "Percentage", "Mean", "Median" };
 
 		private Class[] m_colTypes = 
-			{ String.class, Boolean.class, Double.class, Double.class};
+			{ String.class, Boolean.class, Double.class, Double.class, Double.class};
 
 		private Vector<String> name;
 		private Vector<Boolean> vizu;
 		private Vector<Double> perc;
 		private Vector<Double> mean;
+		private Vector<Double> median;
 
 		public MyTableModel() {
 			super();
@@ -240,6 +293,7 @@ public class TissueSidePanel extends JPanel
 			vizu = new Vector<Boolean>();
 			perc = new Vector<Double>();
 			mean = new Vector<Double>();
+			median =  new Vector<Double>();
 		}
 
 
@@ -258,8 +312,11 @@ public class TissueSidePanel extends JPanel
 
 			case 3:
 				this.mean = data;
+				break;			
+			case 4:
+				this.median = data;
 				break;
-			}
+		}
 			fireTableDataChanged();
 		}
 
@@ -296,6 +353,9 @@ public class TissueSidePanel extends JPanel
 			case 3:
 				mean.set(row, (Double) value);
 				break;
+			case 4:
+				median.set(row, (Double) value);
+				break;
 			}
 			fireTableCellUpdated(row, col);
 		}
@@ -319,6 +379,8 @@ public class TissueSidePanel extends JPanel
 				return perc.elementAt(row);
 			case 3:
 				return mean.elementAt(row);
+			case 4:
+				return median.elementAt(row);
 			}
 
 			return new String();

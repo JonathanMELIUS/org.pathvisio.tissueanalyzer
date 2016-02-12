@@ -33,6 +33,7 @@ package org.pathvisio.tissueanalyzer.gui;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Label;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -114,8 +115,11 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 
 	private final PvDesktop standaloneEngine;
 
-	public final String first_experiment="E-MTAB-513";
-	public final String second_experiment="E-MTAB-1733";
+	public final String first_experiment="E-MTAB-2836";
+//	public final String first_experiment="E-MTAB-1733";
+	public final String second_experiment="E-MTAB-513";
+//	public final String third_experiment="E-MTAB-2919";
+//	public final String fourth_experiment="E-MTAB-3358";
 
 	public static Map<String,ArrayList<String>> tissuemap = new HashMap<String,ArrayList<String>>();
 
@@ -123,6 +127,8 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 		this.standaloneEngine = standaloneEngine;
 		this.tissueControler = tc;
 		experiment="";
+		
+		importInformation = new ImportInformation();
 		fpd = new FilePage();
 		tpd = new TissuesPage();
 		ipd = new ImportPage();
@@ -140,14 +146,15 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 		public static final String IDENTIFIER = "FILE_PAGE";
 		private static final String ACTION_OUTPUT = "output";
 		private static final String ACTION_GDB = "gdb";
-
+		private static final String ACTION_OR = "Or";
+		private JTextField txtID;
 		private JTextField txtOutput;
 		private JTextField txtGdb;
 		private JButton btnGdb;
 		private JButton btnOutput;
 		private ButtonGroup group;
 		private boolean txtOutputComplete;
-
+		private Label idLabel;
 		public void aboutToDisplayPanel() {
 			getWizard().setNextFinishButtonEnabled(txtOutputComplete);
 			getWizard().setPageTitle ("Choose an experiments and the file locations");
@@ -177,26 +184,38 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 		}
 
 		protected JPanel createContents() {
+			txtID = new JTextField(40);
 			txtOutput = new JTextField(40);
 			txtGdb = new JTextField(40);
 			btnGdb = new JButton ("Browse");;
 			btnOutput = new JButton ("Browse");
 
 			//The radio buttons.
-			JRadioButton FirstRButton = new JRadioButton(second_experiment);
+			JRadioButton FirstRButton = new JRadioButton(first_experiment);
 			FirstRButton.setSelected(true);
-			FirstRButton.setActionCommand(second_experiment);
-			JRadioButton SecondRButton = new JRadioButton(first_experiment);
-			SecondRButton.setActionCommand(first_experiment);
-
+			FirstRButton.setActionCommand(first_experiment);
+			JRadioButton SecondRButton = new JRadioButton(second_experiment);
+			SecondRButton.setActionCommand(second_experiment);
+//			JRadioButton ThirdRButton = new JRadioButton(third_experiment);
+//			ThirdRButton.setActionCommand(third_experiment);
+			JRadioButton FourthRButton = new JRadioButton("Or");
+			FourthRButton.setActionCommand("Or");
+			
+			idLabel = new Label("Experiment id");
+			idLabel.setEnabled(false);
+			txtID.setEnabled(false);
+//			FourthRButton.setEnabled(false);
+			
 			//Group the radio buttons.
 			group = new ButtonGroup();
 			group.add(FirstRButton);
 			group.add(SecondRButton);
+//			group.add(ThirdRButton);
+			group.add(FourthRButton);
 
 			FormLayout layout = new FormLayout (
-					"right:pref, 3dlu, pref, 3dlu, pref",
-					"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p");
+					"left:pref, 3dlu, pref, 3dlu, pref",
+					"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p");
 
 			PanelBuilder builder = new PanelBuilder(layout);
 			builder.setDefaultDialogBorder();
@@ -204,18 +223,33 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 
 			builder.add(FirstRButton,cc.xy (1,1));
 			builder.addLabel ("RNA-seq of coding RNA from tissue samples"
-					+ " representing 27 different tissues",
+					+ " representing 32 different tissues",
 					cc.xy (3,1));			
 			builder.add(SecondRButton,cc.xy (1,3));
 			builder.addLabel ("RNA-Seq of human individual tissues "
 					+ "and mixture of 16 tissues (Illumina Body Map)",
 					cc.xy (3,3));
-			builder.addLabel ("Output file", cc.xy (1,7));
-			builder.add (txtOutput, cc.xy (3,7));
-			builder.add (btnOutput, cc.xy (5,7));
-			builder.addLabel ("Gene database", cc.xy (1,9));
-			builder.add (txtGdb, cc.xy (3,9));
-			builder.add (btnGdb, cc.xy (5,9));
+//			builder.add(ThirdRButton,cc.xy (1,5));
+//			builder.addLabel ("RNA-seq from 53 human tissue samples "
+//					+ "from the Genotype-Tissue Expression (GTEx) Project",
+//					cc.xy (3,5));
+//			builder.add(FourthRButton,cc.xy (1,7));
+//			builder.addLabel ("RNA-Seq CAGE (Cap Analysis of Gene Expression)"
+//					+ " analysis of 56 human tissues in RIKEN FANTOM5 project",
+//					cc.xy (3,7));
+			builder.add(FourthRButton,cc.xy (1,5));
+			builder.addLabel ("Enter the Expression Atlas experiment id",
+					cc.xy (3,5));
+			
+			builder.add(idLabel,cc.xy (1,7));
+			builder.add (txtID,cc.xy (3,7));
+			
+			builder.addLabel ("Output file", cc.xy (1,11));
+			builder.add (txtOutput, cc.xy (3,11));
+			builder.add (btnOutput, cc.xy (5,11));
+			builder.addLabel ("Database", cc.xy (1,13));
+			builder.add (txtGdb, cc.xy (3,13));
+			builder.add (btnGdb, cc.xy (5,13));
 
 			btnOutput.addActionListener(this);
 			btnOutput.setActionCommand(ACTION_OUTPUT);
@@ -239,11 +273,46 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 					updateTxt();
 				}
 			});
+			class RadioListener implements ActionListener{
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// TODO Auto-generated method stub				
+					String action = e.getActionCommand();
+					if(ACTION_OR.equals(action)) {
+						txtID.setEnabled(true);
+						idLabel.setEnabled(true);
+					}
+					else{
+						idLabel.setEnabled(false);
+						txtID.setEnabled(false);
+					}					
+				}
+			}
+			RadioListener radioListener =new RadioListener();		
+			FirstRButton.addActionListener(radioListener);
+			SecondRButton.addActionListener(radioListener);
+			FourthRButton.addActionListener(radioListener);
+			txtID.getDocument().addDocumentListener(new DocumentListener() {
+				public void changedUpdate(DocumentEvent arg0) {
+					txtID.setActionCommand(txtID.getText());
+				}
+
+				public void insertUpdate(DocumentEvent arg0) {
+					txtID.setActionCommand(txtID.getText());
+				}
+
+				public void removeUpdate(DocumentEvent arg0) {
+					txtID.setActionCommand(txtID.getText());
+				}
+			});
 			return builder.getPanel();
 		}
 
 		public void aboutToHidePanel() {
-			experiment = group.getSelection().getActionCommand();
+			if (txtID.isEnabled())
+				experiment = txtID.getText();
+			else
+				experiment = group.getSelection().getActionCommand();
 			tissueControler.control(experiment, txtOutput.getText());
 		}
 
@@ -316,7 +385,7 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 			cutoff.setText("0.5");
 
 			complete = new JRadioButton("Download the complete dataset");
-			filtered = new JRadioButton("Filtred by tissue(s)");
+			filtered = new JRadioButton("Filtered by tissue(s)");
 			ButtonGroup groupe = new ButtonGroup ();
 			groupe.add (complete);
 			groupe.add (filtered);
@@ -406,8 +475,9 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 		public void aboutToHidePanel() {
 			if(filtered.isSelected()) {
 				tissueControler.query(selectedTissues, cutoff.getText());
+//				System.out.println(selectedTissues);
 			} else {
-				tissueControler.query(new ArrayList<String>(), "0");
+				tissueControler.query(new ArrayList<String>(), "-1");
 			}
 		}
 	}
@@ -489,11 +559,10 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 								standaloneEngine.getSwingEngine().getGdbManager().getCurrentGdb(),
 								standaloneEngine.getGexManager()
 								);
-						createDefaultVisualization(importInformation);
+						//createDefaultVisualization(importInformation);
 						
-						if (standaloneEngine.getVisualizationManager().getActiveVisualization() == null)
-							System.out.println("titi");
-							createDefaultVisualization(importInformation);
+//						if (standaloneEngine.getVisualizationManager().getActiveVisualization() == null)
+//							createDefaultVisualization(importInformation);
 						
 					} catch (Exception e) {
 						Logger.log.error ("During import", e);
@@ -604,5 +673,7 @@ public class TissueWizard extends Wizard implements ObserverTissue, ObservableSi
 	@Override
 	public void update(ImportInformation importInformation) {
 		this.importInformation=importInformation;		
-	}	
+	}
+	
+
 }

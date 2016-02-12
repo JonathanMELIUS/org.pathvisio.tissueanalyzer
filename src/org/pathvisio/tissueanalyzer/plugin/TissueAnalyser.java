@@ -1,19 +1,3 @@
-// TissueAnalyzer plugin for Pathvisio
-// Copyright 2014 BiGCaT Bioinformatics
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-
 package org.pathvisio.tissueanalyzer.plugin;
 
 import java.io.BufferedReader;
@@ -26,6 +10,9 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.regex.Matcher;
@@ -33,6 +20,8 @@ import java.util.regex.Pattern;
 
 import org.bridgedb.DataSource;
 import org.pathvisio.gexplugin.ImportInformation;
+import org.pathvisio.tissueanalyzer.utils.ObservableTissue;
+import org.pathvisio.tissueanalyzer.utils.ObserverTissue;
 
 /**
  * Query Expression Atlas database by the web service.
@@ -68,26 +57,28 @@ public class TissueAnalyser extends AbstractAnalyser {
 		URL url = null;
 		ArrayList<String> result = new ArrayList<String>();
 		try {
+//			url = new URL("http://www.ebi.ac.uk/gxa/experiments/"+
+//					experiment+".tsv?"+
+//					"accessKey=&serializedFilterFactors="+
+//					"&queryFactorType=ORGANISM_PART" +
+//					"&rootContext=&heatmapMatrixSize=50"+
+//					"&displayLevels=false"+
+//					"&displayGeneDistribution=false" +
+//					"&geneQuery=&exactMatch=true"+ 
+//					"&_exactMatch=on&_geneSetMatch=on"+
+//					organQuery+
+//					"&_queryFactorValues=1" +
+//					"&specific=true" +
+//					"&_specific=on" +
+//					"&cutoff="+cutoff);
 			url = new URL("http://www.ebi.ac.uk/gxa/experiments/"+
 					experiment+".tsv?"+
-					"accessKey=&serializedFilterFactors="+
-					"&queryFactorType=ORGANISM_PART" +
-					"&rootContext=&heatmapMatrixSize=50"+
-					"&displayLevels=false"+
-					"&displayGeneDistribution=false" +
-					"&geneQuery=&exactMatch=true"+ 
-					"&_exactMatch=on&_geneSetMatch=on"+
+					"accessKey=&geneQuery="+					
 					organQuery+
-					"&_queryFactorValues=1" +
-					"&specific=true" +
-					"&_specific=on" +
-					"&cutoff="+cutoff);						
-
-
-
+					"&cutoff="+cutoff);	
+			
 			InputStream is = url.openStream();
 			BufferedReader br = new BufferedReader(new InputStreamReader(is));
-
 
 			String line;
 			boolean dataRow = false;
@@ -170,15 +161,17 @@ public class TissueAnalyser extends AbstractAnalyser {
 	public void queryTissuesList(String experiment) {
 		ArrayList<String> tissuesList = new ArrayList<String>();
 		try { 
+//			URL url = new URL ("http://www.ebi.ac.uk/gxa/experiments/"
+//					+ experiment+".tsv?accessKey=&serializedFilterFactors="
+//					+ "&queryFactorType=ORGANISM_PART&rootContext="
+//					+ "&heatmapMatrixSize=50"
+//					+ "&displayLevels=false&displayGeneDistribution=true"
+//					+ "&geneQuery=&exactMatch=true&_exactMatch=on"
+//					+ "&_geneSetMatch=on&_queryFactorValues=1"
+//					+ "&specific=true&_specific=on&cutoff=10000");
 			URL url = new URL ("http://www.ebi.ac.uk/gxa/experiments/"
-					+ experiment+".tsv?accessKey=&serializedFilterFactors="
-					+ "&queryFactorType=ORGANISM_PART&rootContext="
-					+ "&heatmapMatrixSize=50"
-					+ "&displayLevels=false&displayGeneDistribution=true"
-					+ "&geneQuery=&exactMatch=true&_exactMatch=on"
-					+ "&_geneSetMatch=on&_queryFactorValues=1"
+					+ experiment+".tsv?accessKey=&geneQuery="		
 					+ "&specific=true&_specific=on&cutoff=10000");
-
 			InputStream is = url.openStream();
 			BufferedReader br = new BufferedReader(new InputStreamReader(is));
 			String line;
@@ -221,17 +214,22 @@ public class TissueAnalyser extends AbstractAnalyser {
 		ArrayList<String> result = new ArrayList<String>();
 		URL url = null;
 		try {
-			url = new URL("http://www.ebi.ac.uk/gxa/experiments/E-MTAB-513.tsv?"+
-					"accessKey=&serializedFilterFactors="+
-					"&queryFactorType=ORGANISM_PART" +
-					"&rootContext=&heatmapMatrixSize=50"+
-					"&displayLevels=false&displayGeneDistribution=false" +
-					"&geneQuery=&exactMatch=true&_exactMatch=on&_geneSetMatch=on"+
+//			url = new URL("http://www.ebi.ac.uk/gxa/experiments/E-MTAB-513.tsv?"+
+//					"accessKey=&serializedFilterFactors="+
+//					"&queryFactorType=ORGANISM_PART" +
+//					"&rootContext=&heatmapMatrixSize=50"+
+//					"&displayLevels=false&displayGeneDistribution=false" +
+//					"&geneQuery=&exactMatch=true&_exactMatch=on&_geneSetMatch=on"+
+//					organQuery+
+//					"&_queryFactorValues=1" +
+//					"&specific=true" +
+//					"&_specific=on" +
+//					"&cutoff="+cutoff+"");
+			url = new URL("http://www.ebi.ac.uk/gxa/experiments/"+
+					experiment+".tsv?"+
+					"accessKey=&geneQuery="+					
 					organQuery+
-					"&_queryFactorValues=1" +
-					"&specific=true" +
-					"&_specific=on" +
-					"&cutoff="+cutoff+"");
+					"&cutoff="+cutoff);	
 		}
 		catch (MalformedURLException e1) {
 			e1.printStackTrace();
@@ -280,11 +278,11 @@ public class TissueAnalyser extends AbstractAnalyser {
 							int index = data.lastIndexOf(header);
 							indexList.add(index);
 							tmp +=header+"\t";
-							//System.out.println(index);
+//							System.out.println(tmp);
 						}    					
 					}
 					dataRow = true;
-					//System.out.println(tmp);
+//					System.out.println(tmp);
 				}
 				if (tmp!="")result.add(tmp);
 			}
