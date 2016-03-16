@@ -23,6 +23,8 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,6 +37,8 @@ import java.util.TreeMap;
 import java.util.Vector;
 
 import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -46,6 +50,8 @@ import org.bridgedb.BridgeDb;
 import org.bridgedb.IDMapper;
 import org.bridgedb.IDMapperException;
 import org.bridgedb.Xref;
+import org.pathvisio.core.ApplicationEvent;
+import org.pathvisio.core.Engine.ApplicationEventListener;
 import org.pathvisio.core.model.ConverterException;
 import org.pathvisio.core.model.Pathway;
 import org.pathvisio.core.model.PathwayElement;
@@ -76,7 +82,7 @@ import org.pathvisio.visualization.plugins.LegendPanel;
  */
 
 public class TissueSidePanel extends JPanel 
-	implements ActionListener,GexManagerListener, TableModelListener {
+	implements ActionListener,GexManagerListener, TableModelListener,ApplicationEventListener {
 
 	private PvDesktop standaloneEngine;
 	private Vector<String> vT;
@@ -85,14 +91,30 @@ public class TissueSidePanel extends JPanel
 	private JButton calcul;
 	private MyTableModel dtm;
 	private JTable table;
+	private JLabel average;
+	private JLabel tissue;
+	private JLabel measured;
+	private JLabel total;
 
 	public TissueSidePanel(PvDesktop standaloneEngine){
 		this.standaloneEngine = standaloneEngine;
 		this.standaloneEngine.getGexManager().addListener(this);
+		this.standaloneEngine.getSwingEngine().getEngine().addApplicationEventListener(this);
+		
+		JLabel labelAverage = new JLabel("Overall average tissues expression:");
+		JLabel labelMeasured = new JLabel("Measured datanodes:");
+		JLabel labelTotal = new JLabel("Total number of datanodes:");
+		JLabel labelTissues = new JLabel("Number of tissue in the dataset:");
+		
+		average = 	new JLabel("0.0");
+		tissue = new JLabel("0");
+		measured = new JLabel("0");
+		total = new JLabel("0");
 		
 		legendPane = new LegendPanel(standaloneEngine.getVisualizationManager());
 		legendPane.setPreferredSize(new Dimension(100,100));
-		legendPane.setBorder(null);		
+		legendPane.setBorder(null);	
+		legendPane.setBackground(this.getBackground());
 		
 		calcul = new JButton("Calculate");
 		calcul.addActionListener(this);
@@ -102,57 +124,97 @@ public class TissueSidePanel extends JPanel
 		table.getModel().addTableModelListener(this);
 		table.setFillsViewportHeight(true);
         table.setAutoCreateRowSorter(true);
-
+        table.setBackground(this.getBackground());
+        
+//        table.getColumn("Overall tissues expression").setPreferredWidth(200);
+        table.getColumn("Median tissue expression").setPreferredWidth(200);
+        JScrollPane sPane = new JScrollPane(table);
+        sPane.setBackground(this.getBackground());
+        
+        
         setLayout(new GridBagLayout());
+        
         GridBagConstraints c = new GridBagConstraints();
-        c.weightx = 0.5;
+        c.gridx = 0;
+        c.gridy = 0;
+        c.anchor = c.LINE_START;
+        add(labelTissues, c);
+
+        c = new GridBagConstraints();
+        c.gridx = 1;
+        c.gridy = 0;
+        c.anchor = c.LINE_START;
+        add(tissue, c);
+
+        c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = 1;
-        add(legendPane, c);
+        c.anchor = c.LINE_START;
+        add(labelAverage, c);
 
         c = new GridBagConstraints();
         c.gridx = 1;
         c.gridy = 1;
-        c.weightx = 0.1;
-//        c.ipady = 10;
-        add(calcul, c);
+        c.anchor = c.LINE_START;
+        add(average, c);
+        
+        c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = 2;
+        c.anchor = c.LINE_START;
+        add(labelMeasured, c);
+
+        c = new GridBagConstraints();
+        c.gridx = 1;
+        c.gridy = 2;
+        c.anchor = c.LINE_START;
+        add(measured, c);
+        
+        c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = 3;
+        c.anchor = c.LINE_START;
+        add(labelTotal, c);
+
+        c = new GridBagConstraints();
+        c.gridx = 1;
+        c.gridy = 3;
+        c.anchor = c.LINE_START;
+        add(total, c);
         
         c = new GridBagConstraints();
         c.fill = GridBagConstraints.BOTH;
         c.gridx = 0;
-        c.gridy = 0;
+        c.gridy = 4;
         c.gridwidth = 2; 
-        add(new JScrollPane(table), c);
-	}
+        add(sPane, c);
+        
+        c = new GridBagConstraints();
+        c.weightx = 0.5;
+        c.gridx = 0;
+        c.gridy = 5;
+        add(legendPane, c);
 
+        c = new GridBagConstraints();
+        c.gridx = 1;
+        c.gridy = 5;
+        c.weightx = 0.5;
+        c.anchor = c.PAGE_START;
+        add(calcul, c);       
+	}
 	@Override
 	public void actionPerformed(ActionEvent arg0) {	
-//		try {
-//			Class.forName("org.bridgedb.rdb.IDMapperRdb");
-//		} catch (ClassNotFoundException e2) {
-//			// TODO Auto-generated catch block
-//			e2.printStackTrace();
-//		}
-//		try {
-//			IDMapper mapper= BridgeDb.connect("idmapper-pgdb:/home/mael/Pathy/Hs_Derby_20130701.bridge");
-//			System.out.println("hy");
-//		} catch (IDMapperException e2) {
-//			// TODO Auto-generated catch block
-//			e2.printStackTrace();
-//		}
-//		Pathway p = new Pathway();
-//		File gpml = new File ("/home/mael/Pathy/hs/Hs_ACE_Inhibitor_Pathway_WP554_70881.gpml");
-//		try {
-//			p.readFromXml(gpml, true);
-//			for (PathwayElement e : p.getDataObjects()){
-//				System.out.println(e.getXref()+" "+e.getTextLabel());
-//			}
-//		} catch (ConverterException e1) {
-//			// TODO Auto-generated catch block
-//			e1.printStackTrace();
-//		}
-		
-		
+		if (standaloneEngine.getSwingEngine().getEngine().getActivePathway()==null){
+//			JOptionPane.showMessageDialog(null, "No pathway opened");
+			JOptionPane.showMessageDialog(null, "No pathway opened", "Error", JOptionPane.ERROR_MESSAGE);
+		}
+		else if (standaloneEngine.getGexManager().getCurrentGex()==null){
+			JOptionPane.showMessageDialog(null, "No expression dataset selected");
+		}
+		else  calcul();
+	}
+
+	public void calcul() {	
 		List<Xref> xrefs = standaloneEngine.getSwingEngine().getEngine().getActivePathway().getDataNodeXrefs();
 		Set<Xref> setRefs = new HashSet<Xref>(xrefs);
 
@@ -192,24 +254,24 @@ public class TissueSidePanel extends JPanel
 			e.printStackTrace();
 		}
 
-		Vector<Double> vP = new Vector<Double>();
-		Vector<Double> vM = new Vector<Double>();
-		Vector<Double> vD = new Vector<Double>();
-
+		Vector<Double> vD = new Vector<Double>();	
+		double average = 0.0;
+		int length = 0;
+		
 		for(Entry<String, List<TissueResult>> entry : data.entrySet()) {
-			int length = entry.getValue().size();
-			double i = 0;
-			double tmp = 0;
+//			int length = entry.getValue().size();
+			length = entry.getValue().size();
+			int i = 0;
 			ArrayList<Double> foo = new ArrayList<Double>();
 			for( TissueResult tr: entry.getValue()){
-				if (tr.getExpression() >= (2/ Math.log10(2)) ){
-					i++;
-				}
-				tmp += tr.getExpression();
+//				if (tr.getExpression() >= (2/ Math.log10(2)) ){
+//					i++;
+//				}
+//				tmp += tr.getExpression();
 				foo.add(tr.getExpression());
+				i++;
 			}
-			vP.add(i/length*100);
-			vM.add(tmp/length);	
+//			System.out.println(entry.getKey()+" "+i);
 			double median;			
 			Collections.sort(foo);
 			int s = foo.size() ;
@@ -225,13 +287,25 @@ public class TissueSidePanel extends JPanel
 				median = 0.0;
 			}
 			vD.add(median);
+			average += median;
 		}
-		dtm.addCollum(vP, 2);
-		dtm.addCollum(vM, 3);
-		dtm.addCollum(vD, 4);
+		
+		Double vA  = average/data.size();
+		average(vA);
+		
+		String s = String.valueOf(data.size());
+		tissue.setText(s);
+		s = String.valueOf(length);
+		measured.setText(s);
+		s = String.valueOf(setRefs.size());
+		total.setText(s);
+		
+		dtm.addCollum(vD, 2);
+		dtm.addCollum(vA, 3);
 	}
 	
-	private void createContent(){		
+	private void createContent(){
+		table.setBackground(Color.WHITE);
 		ArrayList<String> listOfTissues = new ArrayList<String>() ;		
 		try {
 			List<? extends ISample> names = standaloneEngine.getGexManager().
@@ -256,8 +330,8 @@ public class TissueSidePanel extends JPanel
 		dtm.addCollum(vT, 0);
 		dtm.addCollum(vB, 1);
 		dtm.addCollum(tmp, 2);
-		dtm.addCollum(tmp, 3);
-		dtm.addCollum(tmp, 4);
+//		dtm.addCollum(0.0, 3);
+//		dtm.addCollum(tmp, 4);
 	}
 
 	@Override
@@ -266,6 +340,9 @@ public class TissueSidePanel extends JPanel
 		switch (e.getType())
 		{
 		case GexManagerEvent.CONNECTION_OPENED:
+			VisualizationManager visMgr = standaloneEngine.getVisualizationManager();
+			Visualization v = new Visualization("TissueAnalyzer");
+			visMgr.removeVisualization(v);
 			createContent();
 			break;
 		case GexManagerEvent.CONNECTION_CLOSED:
@@ -274,49 +351,63 @@ public class TissueSidePanel extends JPanel
 			assert (false);
 		}
 	}
-
+	
+	public void average(Double value){
+		NumberFormat formatter = new DecimalFormat("#0.00");  
+		String s = String.valueOf(formatter.format(value));
+		average.setText(s);		
+	}
+	
+	
 	private class MyTableModel extends AbstractTableModel {
-		private String[] m_colNames = { "Tissues", "Visualisation", "Percentage", "Mean", "Median" };
+//		private String[] m_colNames = { "Tissues", "Visualisation", "Median", "Overall tissues expression",
+//				"Percentage" };
+//		, "Overall tissues expression"
+//		private Class[] m_colTypes = 
+//			{ String.class, Boolean.class, Double.class, Double.class, Double.class};
+		private String[] m_colNames = { "Tissues", "Visualisation", "Median tissue expression"};
 
 		private Class[] m_colTypes = 
-			{ String.class, Boolean.class, Double.class, Double.class, Double.class};
+			{ String.class, Boolean.class, Double.class};
 
 		private Vector<String> name;
 		private Vector<Boolean> vizu;
-		private Vector<Double> perc;
-		private Vector<Double> mean;
+//		private Vector<Double> perc;
+//		private Double average;
 		private Vector<Double> median;
 
 		public MyTableModel() {
 			super();
 			name = new Vector<String>();
 			vizu = new Vector<Boolean>();
-			perc = new Vector<Double>();
-			mean = new Vector<Double>();
-			median =  new Vector<Double>();
+			median = new Vector<Double>();
+//			average = 0.0;
+//			median =  new Vector<Double>();
 		}
 
 
-		private void addCollum(Vector data, int col){
+		private void addCollum(Object data, int col){
 			switch (col) {
 			case 0:
-				this.name = data;
+				this.name = (Vector<String>) data;
 				break;
 			case 1:
-				this.vizu = data;
+				this.vizu = (Vector<Boolean>) data;
 				break;
 
 			case 2:
-				this.perc = data;
+				this.median = (Vector<Double>) data;
 				break;
-
 			case 3:
-				this.mean = data;
-				break;			
-			case 4:
-				this.median = data;
+				average((Double) data);
 				break;
-		}
+//			case 3:
+//				this.average = (Double) data;
+//				break;			
+				//			case 4:
+				//				this.perc = data;
+				//				break;
+			}
 			fireTableDataChanged();
 		}
 
@@ -348,14 +439,16 @@ public class TissueSidePanel extends JPanel
 				vizu.set(row, (Boolean) value);
 				break;
 			case 2:
-				perc.set(row, (Double) value);
-				break;
-			case 3:
-				mean.set(row, (Double) value);
-				break;
-			case 4:
 				median.set(row, (Double) value);
 				break;
+//			case 3:
+//				average((Double) value);
+//			case 3:
+//				average = (Double) value;
+//				break;
+//			case 4:
+//				perc.set(row, (Double) value);
+//				break;
 			}
 			fireTableCellUpdated(row, col);
 		}
@@ -376,13 +469,15 @@ public class TissueSidePanel extends JPanel
 			case 1:
 				return vizu.elementAt(row);
 			case 2:
-				return perc.elementAt(row);
-			case 3:
-				return mean.elementAt(row);
-			case 4:
 				return median.elementAt(row);
+//			case 3:
+//				String s = average.getText();
+//				return Double.parseDouble(s);				
+//			case 3:
+//				return average;
+//			case 4:
+//				return perc.elementAt(row);
 			}
-
 			return new String();
 		}
 	}
@@ -403,7 +498,7 @@ public class TissueSidePanel extends JPanel
 		gradient.addColorValuePair(new ColorValuePair(new Color(218, 242, 249), lowerbound));
 		gradient.addColorValuePair(new ColorValuePair(new Color(0, 0, 255), upperbound));
 
-		Visualization v = new Visualization("auto-generated");
+		Visualization v = new Visualization("TissueAnalyzer");
 
 		ColorByExpression cby = new ColorByExpression(standaloneEngine.getGexManager(), 
 				standaloneEngine.getVisualizationManager().getColorSetManager());
@@ -434,6 +529,22 @@ public class TissueSidePanel extends JPanel
 		visMgr.addVisualization(v);
 		visMgr.setActiveVisualization(v);
 
+	}
+
+	@Override
+	public void applicationEvent(ApplicationEvent e) {
+		// TODO Auto-generated method stub
+		if (standaloneEngine.getGexManager().isConnected()){
+			VisualizationManager visMgr = standaloneEngine.getVisualizationManager();
+			Visualization v = new Visualization("TissueAnalyzer");
+			visMgr.removeVisualization(v);
+			
+			average.setText("0.0");
+			tissue.setText("0");
+			measured.setText("0");
+			total.setText("0");
+			createContent();
+		}
 	}
 }
 
