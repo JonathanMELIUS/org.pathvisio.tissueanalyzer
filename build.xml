@@ -2,11 +2,8 @@
 <project name="org.pathvisio.tissueanalyzer" default="jar" basedir=".">
 
   	<property name="pathvisio.dir" value="/home/bigcat-jonathan/Java8_test/trunk/"/>
-	<import file="${pathvisio.dir}/plugin-common.xml" />
-	<!-- embedded jars are embedded in the resulting bundle -->
-	<path id="embed.jars">
-		<!-- None -->
-	</path>
+  	<property name="bundle.dest" value="dist"/>
+	<property name="jar.name" value="org.pathvisio.tissueanalyzer.jar"/>
 
   	<path id="project.class.path">
 		<fileset dir="${pathvisio.dir}/modules">
